@@ -2,6 +2,7 @@ import * as Yup from 'yup';
 import { startOfHour, parseISO, isBefore } from 'date-fns';
 import Sequelize from 'sequelize';
 import Meetup from '../models/Meetup';
+import File from '../models/File';
 
 class MeetupController {
   async store(req, res) {
@@ -105,6 +106,23 @@ class MeetupController {
     await meetup.update(req.body);
 
     return res.json(meetup);
+  }
+
+  async index(req, res) {
+    const meetups = await Meetup.findAll({
+      where: { user_id: req.userId },
+      order: ['date'],
+      attributes: ['id', 'title', 'description', 'location', 'date'],
+      include: [
+        {
+          model: File,
+          as: 'file',
+          attributes: ['id', 'path', 'url'],
+        },
+      ],
+    });
+
+    return res.json(meetups);
   }
 }
 

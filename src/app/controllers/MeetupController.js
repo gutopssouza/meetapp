@@ -124,6 +124,26 @@ class MeetupController {
 
     return res.json(meetups);
   }
+
+  async delete(req, res) {
+    const meetup = await Meetup.findByPk(req.params.id);
+
+    if (meetup.user_id !== req.userId) {
+      return res
+        .status(401)
+        .json({ error: 'You do not have permission to cancel this meetup.' });
+    }
+
+    if (isBefore(meetup.date, new Date())) {
+      return res
+        .status(400)
+        .json({ error: 'You are not allowed to cancel past meetups' });
+    }
+
+    await meetup.destroy({ force: true });
+
+    return res.json({ ok: true });
+  }
 }
 
 export default new MeetupController();

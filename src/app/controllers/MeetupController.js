@@ -7,7 +7,6 @@ import File from '../models/File';
 class MeetupController {
   async store(req, res) {
     const schema = Yup.object().shape({
-      user_id: Yup.number().required(),
       title: Yup.string().required(),
       description: Yup.string().required(),
       location: Yup.string().required(),
@@ -116,7 +115,6 @@ class MeetupController {
       include: [
         {
           model: File,
-          as: 'file',
           attributes: ['id', 'path', 'url'],
         },
       ],

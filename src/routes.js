@@ -27,6 +27,8 @@ routes.get('/meetups', MeetupController.index);
 routes.delete('/meetups/:id', MeetupController.delete);
 
 routes.get('/organizing', OrganizingController.index);
+routes.get('/subscribes', SubscribeController.index);
+
 routes.post('/meetups/:meetupId/subscribes', SubscribeController.store);
 
 export default routes;

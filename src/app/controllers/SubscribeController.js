@@ -3,6 +3,8 @@ import { Op } from 'sequelize';
 import User from '../models/User';
 import Meetup from '../models/Meetup';
 import MeetupUser from '../models/MeetupUser';
+import Queue from '../../lib/Queue';
+import CancellationMail from '../jobs/CancellationMail';
 
 class SubscribeController {
   async store(req, res) {
@@ -45,6 +47,13 @@ class SubscribeController {
     const subscription = await MeetupUser.create({
       user_id: user.id,
       meetup_id: meetup.id,
+    });
+
+    console.log('Fila executou');
+
+    await Queue.add(CancellationMail.key, {
+      meetup,
+      user,
     });
 
     return res.json(subscription);

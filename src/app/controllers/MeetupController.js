@@ -18,7 +18,7 @@ class MeetupController {
       description: Yup.string().required(),
       location: Yup.string().required(),
       date: Yup.date().required(),
-      banner_id: Yup.number().required(),
+      banner_id: Yup.string().required(),
     });
 
     if (!(await schema.isValid(req.body))) {
@@ -77,13 +77,13 @@ class MeetupController {
       return res.status(400).json({ error: 'Validation failed' });
     }
 
-    const { date } = req.body;
+    const checkDate = req.body.date;
 
     /**
      * Check for past dates
      */
 
-    const hourStart = startOfHour(parseISO(date));
+    const hourStart = startOfHour(parseISO(checkDate));
 
     if (isBefore(hourStart, new Date())) {
       return res.status(400).json({ error: 'Past dates are not permitted' });
@@ -109,9 +109,39 @@ class MeetupController {
 
     const meetup = await Meetup.findByPk(req.params.id);
 
+    const {
+      id,
+      past,
+      cancealable,
+      title,
+      description,
+      location,
+      date,
+      userId,
+      banner,
+    } = await Meetup.findByPk(req.params.id, {
+      include: [
+        {
+          model: File,
+          as: 'banner',
+          attributes: ['id', 'path', 'url'],
+        },
+      ],
+    });
+
     await meetup.update(req.body);
 
-    return res.json(meetup);
+    return res.json({
+      id,
+      past,
+      cancealable,
+      title,
+      description,
+      location,
+      date,
+      userId,
+      banner,
+    });
   }
 
   async index(req, res) {

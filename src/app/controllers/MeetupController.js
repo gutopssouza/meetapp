@@ -109,10 +109,12 @@ class MeetupController {
 
     const meetup = await Meetup.findByPk(req.params.id);
 
+    await meetup.update(req.body);
+
     const {
       id,
       past,
-      cancealable,
+      cancelable,
       title,
       description,
       location,
@@ -129,12 +131,10 @@ class MeetupController {
       ],
     });
 
-    await meetup.update(req.body);
-
     return res.json({
       id,
       past,
-      cancealable,
+      cancelable,
       title,
       description,
       location,

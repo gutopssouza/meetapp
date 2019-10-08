@@ -2,6 +2,7 @@ import { isBefore } from 'date-fns';
 import { Op } from 'sequelize';
 import User from '../models/User';
 import Meetup from '../models/Meetup';
+import File from '../models/File';
 import MeetupUser from '../models/MeetupUser';
 import Queue from '../../lib/Queue';
 import CancellationMail from '../jobs/CancellationMail';
@@ -49,7 +50,7 @@ class SubscribeController {
       meetup_id: meetup.id,
     });
 
-    console.log('Fila executou');
+    // console.log('Fila executou');
 
     await Queue.add(CancellationMail.key, {
       meetup,
@@ -73,12 +74,40 @@ class SubscribeController {
             },
           },
           required: true,
+          include: [
+            {
+              model: File,
+              as: 'banner',
+              attributes: ['id', 'path', 'url'],
+            },
+          ],
         },
       ],
       order: [[Meetup, 'date']],
     });
 
     return res.json(subscriptions);
+  }
+
+  async delete(req, res) {
+    const meetupUser = await MeetupUser.findByPk(req.params.id);
+    const meetup = await Meetup.findByPk(meetupUser.meetup_id);
+
+    if (meetupUser.user_id !== req.userId) {
+      return res.status(401).json({
+        error: 'You do not have permission to unsubscribe to this meetup.',
+      });
+    }
+
+    if (isBefore(meetup.date, new Date())) {
+      return res
+        .status(400)
+        .json({ error: 'You are not allowed to unsubscribe past meetups' });
+    }
+
+    await meetupUser.destroy({ force: true });
+
+    return res.json({ ok: true });
   }
 }
 

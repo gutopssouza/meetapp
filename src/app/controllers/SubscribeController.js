@@ -75,6 +75,7 @@ class SubscribeController {
           },
           required: true,
           include: [
+            User,
             {
               model: File,
               as: 'banner',
